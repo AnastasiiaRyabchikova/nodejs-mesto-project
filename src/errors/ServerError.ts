@@ -6,8 +6,11 @@ export type ServerErrorProps = {
 
 export class ServerError extends Error {
   statusCode;
+
   message = '';
+
   name = '';
+
   constructor({
     message = '',
     name,
