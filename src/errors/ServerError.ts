@@ -14,7 +14,7 @@ export class ServerError extends Error {
   some = '';
 
   constructor({
-    message = 'На сервере произошла ошибка',
+    message = '',
     name,
     statusCode = 500,
   }: ServerErrorProps = {}) {
