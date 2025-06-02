@@ -1,0 +1,3 @@
+export const REQUEST_ERROR_CODE = 400;
+export const NOT_FOUND_ERROR_CODE = 404;
+export const UNHANDLED_SERVER_ERROR_CODE = 500;
