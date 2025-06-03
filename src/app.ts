@@ -1,10 +1,13 @@
 import mongoose from 'mongoose';
-import express, { Request, Response } from 'express';
-import handleErrors from './errors/handleErrors';
+import express from 'express';
+import errors from './middlewares/errors';
 import UserRouter from './routes/users';
 import CardsRouter from './routes/cards';
 import { ServerError } from './errors/ServerError';
 import { NOT_FOUND_ERROR_CODE } from './errors/codes';
+import { login, createUser } from './controllers/users';
+import auth from './middlewares/auth';
+import logger from './middlewares/logger';
 
 const app = express();
 const port = 3000;
@@ -13,20 +16,18 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req: Request, res: Response, next: Function) => {
-  (req as any).user = {
-    _id: '683a1d1119d8d3d15ce10b66',
-  };
-
-  next();
-});
+app.use(logger.requestLogger);
+app.post('/signin', login);
+app.post('/signup', createUser);
+app.use(auth);
 app.use('/users', UserRouter);
 app.use('/cards', CardsRouter);
+app.use(logger.errorLogger);
 
 app.use((req, res, next) => {
   next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Страница не найдена' }));
 });
 
-app.use(handleErrors);
+app.use(errors);
 
 app.listen(port);

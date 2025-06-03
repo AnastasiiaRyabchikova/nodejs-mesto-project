@@ -2,7 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { Error, MongooseError } from 'mongoose';
 import Card from '../models/card';
 import { ServerError } from '../errors/ServerError';
-import { NOT_FOUND_ERROR_CODE, REQUEST_ERROR_CODE } from '../errors/codes';
+import {
+  NOT_FOUND_ERROR_CODE,
+  REQUEST_ERROR_CODE,
+  FORBIDDEN_ERROR_CODE,
+} from '../errors/codes';
 import { getValidationErrorString } from '../utils/errors';
 
 export const getCards = (req: Request, res: Response, next: Function) => {
@@ -16,12 +20,14 @@ export const getCards = (req: Request, res: Response, next: Function) => {
 };
 
 export const deleteCardById = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndDelete(req.params.id)
+  Card.findById(req.params.id)
     .then((card) => {
       if (!card) {
         next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Карточка не найдена' }));
+      } else if (card.owner.toString() !== (req as any).user._id) {
+        next(new ServerError({ statusCode: FORBIDDEN_ERROR_CODE, message: 'Нельзя удалять чужую карточку' }));
       } else {
-        res.send(card);
+        card.deleteOne().then(() => res.send({ message: 'Карточка удалена' }));
       }
     })
     .catch(() => {

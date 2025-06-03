@@ -1,5 +1,7 @@
 export default interface IUser {
-  name: String,
-  about: String,
-  avatar: String,
+  name: string,
+  about: string,
+  avatar: string,
+  password: string,
+  email: string,
 }
