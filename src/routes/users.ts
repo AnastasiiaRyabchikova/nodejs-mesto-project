@@ -12,7 +12,7 @@ const router = Router();
 router.get('/', getUsers);
 router.get('/me', getMe);
 router.patch('/me', updateMe);
-router.get('/:id', getUserById);
 router.patch('/me/avatar', updateMyAvatar);
+router.get('/:id', getUserById);
 
 export default router;
