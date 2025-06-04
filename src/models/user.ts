@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
-import isURL from 'validator/lib/isURL';
 import IUser from '../types/entities/user';
 
 const { Schema } = mongoose;
@@ -23,7 +22,7 @@ const userSchema = new Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator: (value: string) => {
-        const reg = /^(https?:\/\/)(www\.)?([\w-]+\.)+[a-z]{2,}(\/[\w\-._~:\/?#[\]@!$&'()*+,;=]*)?(#)?$/i;
+        const reg = /^(https?:\/\/)(www\.)?([\w-]+\.)+[a-z]{2,}(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?(#)?$/i;
         const match = value.match(reg);
         return match !== null && match[3] !== 'www.';
       },
