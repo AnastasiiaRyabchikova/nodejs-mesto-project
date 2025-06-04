@@ -48,7 +48,13 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
       })
     ))
     .then((user) => {
-      res.send(user);
+      res.send({
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      });
     })
     .catch((error: MongooseError) => {
       if (error instanceof Error.ValidationError) {
@@ -130,8 +136,9 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
             if (!isMatch) {
               next(new ServerError({ statusCode: AUTHORIZATION_ERROR_CODE, message: 'Неверные почта или пароль' }));
             } else {
-              const token = jwt.sign({ _id: user._id }, '', { expiresIn: '7d' });
+              const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
               res.cookie('httpOnly', token);
+              res.send(user);
             }
           });
       }

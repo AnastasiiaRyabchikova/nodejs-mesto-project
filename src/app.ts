@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import errors from './middlewares/errors';
 import UserRouter from './routes/users';
 import CardsRouter from './routes/cards';
@@ -17,6 +18,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger.requestLogger);
+app.use(cookieParser());
 app.post('/signin', login);
 app.post('/signup', createUser);
 app.use(auth);
