@@ -6,6 +6,7 @@ import User from '../models/user';
 import { ServerError } from '../errors/ServerError';
 import {
   AUTHORIZATION_ERROR_CODE,
+  DUBLICATE_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,
   REQUEST_ERROR_CODE,
   UNHANDLED_SERVER_ERROR_CODE,
@@ -37,33 +38,40 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
-  bcrypt.hash(req.body.password, 10)
-    .then((hash) => (
-      User.create({
-        name: req.body.name,
-        about: req.body.about,
-        avatar: req.body.avatar,
-        email: req.body.email,
-        password: hash,
+  const { password } = req.body;
+  if (!password) {
+    next(new ServerError({ statusCode: REQUEST_ERROR_CODE, message: 'Укажите пароль' }));
+  } else {
+    bcrypt.hash(req.body.password, 10)
+      .then((hash) => (
+        User.create({
+          name: req.body.name,
+          about: req.body.about,
+          avatar: req.body.avatar,
+          email: req.body.email,
+          password: hash,
+        })
+      ))
+      .then((user) => {
+        res.send({
+          _id: user._id,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        });
       })
-    ))
-    .then((user) => {
-      res.send({
-        _id: user._id,
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-        email: user.email,
+      .catch((error: MongooseError) => {
+        if (error.constructor?.name === 'MongoServerError' && (error as any).code === 11000) {
+          next(new ServerError({ message: 'Почта уже занята', statusCode: DUBLICATE_ERROR_CODE }));
+        } else if (error instanceof Error.ValidationError) {
+          const message = getValidationErrorString(error);
+          next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+        } else {
+          next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+        }
       });
-    })
-    .catch((error: MongooseError) => {
-      if (error instanceof Error.ValidationError) {
-        const message = getValidationErrorString(error);
-        next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
-      } else {
-        next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
-      }
-    });
+  }
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
@@ -138,7 +146,13 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
             } else {
               const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
               res.cookie('httpOnly', token);
-              res.send(user);
+              res.send({
+                _id: user._id,
+                name: user.name,
+                about: user.about,
+                avatar: user.avatar,
+                email: user.email,
+              });
             }
           });
       }

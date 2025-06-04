@@ -21,9 +21,14 @@ const userSchema = new Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validator: (value: string) => (
-      isURL(value, { protocols: ['http', 'https'] })
-    ),
+    validate: {
+      validator: (value: string) => {
+        const reg = /^(https?:\/\/)(www\.)?([\w-]+\.)+[a-z]{2,}(\/[\w\-._~:\/?#[\]@!$&'()*+,;=]*)?(#)?$/i;
+        const match = value.match(reg);
+        return match !== null && match[3] !== 'www.';
+      },
+      message: ({ value }: { value: string }) => `${value} не может быть аватаром`,
+    },
   },
   password: {
     type: String,
