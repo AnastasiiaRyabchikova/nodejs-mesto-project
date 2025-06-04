@@ -6,7 +6,7 @@ const { Schema } = mongoose;
 const cardSchema = new Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, 'Имя обязательно'],
     maxLength: [30, 'Поле "Имя" не может быть меньше 30 символов'],
     minLength: [2, 'Поле "Имя" не может быть короче 2 символов'],
   },
