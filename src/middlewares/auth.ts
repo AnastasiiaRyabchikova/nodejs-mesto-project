@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import AuthorizationError from '../errors/authorization-error';
+import AuthorizationError from '../requests/authorization-error';
 
 export default (req: Request, res: Response, next: Function) => {
   const { httpOnly } = req.cookies;

@@ -3,12 +3,13 @@ import { Error, MongooseError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import AuthorizationError from '../errors/authorization-error';
-import NotFoundError from '../errors/not-found';
-import RequestError from '../errors/request-error';
-import DublicateError from '../errors/dublicate-error';
-import InteranlServerError from '../errors/interanl-server-error';
+import AuthorizationError from '../requests/authorization-error';
+import NotFoundError from '../requests/not-found';
+import RequestError from '../requests/request-error';
+import DublicateError from '../requests/dublicate-error';
+import InteranlServerError from '../requests/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
+import { CREATED_SUCCES_CODE } from '../requests/codes';
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
@@ -54,15 +55,16 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
         })
       ))
       .then((user) => {
-        res.send({
-          _id: user._id,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-          email: user.email,
-        });
+        res.status(CREATED_SUCCES_CODE)
+          .send({
+            _id: user._id,
+            name: user.name,
+            about: user.about,
+            avatar: user.avatar,
+            email: user.email,
+          });
       })
-      .catch((error: MongooseError) => {
+      .catch((error) => {
         if (error.constructor?.name === 'MongoServerError' && error.code === 11000) {
           next(new DublicateError('Почта уже занята'));
         } else if (error instanceof Error.ValidationError) {

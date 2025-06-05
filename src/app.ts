@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import errors from './middlewares/errors';
 import UserRouter from './routes/users';
 import CardsRouter from './routes/cards';
-import NotFoundError from './errors/not-found';
+import NotFoundError from './requests/not-found';
 import { login, createUser } from './controllers/users';
 import auth from './middlewares/auth';
 import logger from './middlewares/logger';

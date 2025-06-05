@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import { Error, MongooseError } from 'mongoose';
 import Card from '../models/card';
-import NotFoundError from '../errors/not-found';
-import RequestError from '../errors/request-error';
-import ForbidenError from '../errors/forbiden-error';
-import InteranlServerError from '../errors/interanl-server-error';
+import NotFoundError from '../requests/not-found';
+import RequestError from '../requests/request-error';
+import ForbidenError from '../requests/forbiden-error';
+import InteranlServerError from '../requests/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
+import { CREATED_SUCCES_CODE } from '../requests/codes';
 
 export const getCards = (req: Request, res: Response, next: Function) => {
   Card.find({})
@@ -45,7 +46,7 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
   };
   Card.create(newCard)
     .then((card) => {
-      res.send(card);
+      res.status(CREATED_SUCCES_CODE).send(card);
     })
     .catch((error: MongooseError) => {
       if (error instanceof Error.ValidationError) {

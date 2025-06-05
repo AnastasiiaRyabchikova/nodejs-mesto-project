@@ -1,5 +1,5 @@
 import { ErrorRequestHandler } from 'express';
-import { INTERNAL_SERVER_ERROR_CODE } from '../errors/codes';
+import { INTERNAL_SERVER_ERROR_CODE } from '../requests/codes';
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || INTERNAL_SERVER_ERROR_CODE;

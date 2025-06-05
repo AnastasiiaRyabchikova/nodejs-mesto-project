@@ -1,3 +1,4 @@
+export const CREATED_SUCCES_CODE = 201;
 export const REQUEST_ERROR_CODE = 400;
 export const AUTHORIZATION_ERROR_CODE = 401;
 export const FORBIDDEN_ERROR_CODE = 403;
