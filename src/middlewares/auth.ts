@@ -1,18 +1,23 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import AuthorizationError from '../requests/authorization-error';
+import { AuthContext } from '../types/entities/user';
 
-export default (req: Request, res: Response, next: Function) => {
+interface JwtPayload {
+  _id: string;
+}
+
+export default (req: Request, res: Response<unknown, AuthContext>, next: Function) => {
   const { httpOnly } = req.cookies;
   try {
-    const decoded: { _id: string } | string | undefined = httpOnly ? jwt.verify(httpOnly, 'some-secret-key') : '';
+    const decoded = jwt.verify(httpOnly, 'some-secret-key') as JwtPayload;
     if (!decoded) {
       throw new Error();
     } else {
       if (typeof decoded === 'string') {
         throw new Error();
       }
-      req.user = decoded;
+      res.locals.user = decoded;
       next();
     }
   } catch (e) {

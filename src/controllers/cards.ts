@@ -21,9 +21,10 @@ export const getCards = (req: Request, res: Response, next: Function) => {
 export const deleteCardById = (req: Request, res: Response, next: NextFunction) => {
   Card.findById(req.params.cardId)
     .then((card) => {
+      const { user } = res.locals;
       if (!card) {
         next(new NotFoundError('Карточка не найдена'));
-      } else if (card.owner.toString() !== req.user?._id) {
+      } else if (card.owner.toString() !== user._id) {
         next(new ForbidenError('Нельзя удалять чужую карточку'));
       } else {
         card.deleteOne().then(() => res.send({ message: 'Карточка удалена' }));
@@ -39,10 +40,11 @@ export const deleteCardById = (req: Request, res: Response, next: NextFunction) 
 };
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
+  const { user } = res.locals;
   const newCard = {
     name: req.body.name,
     link: req.body.link,
-    owner: req.user?._id,
+    owner: user._id,
   };
   Card.create(newCard)
     .then((card) => {
@@ -59,9 +61,10 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
+  const { user } = res.locals;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user?._id } },
+    { $addToSet: { likes: user._id } },
     { new: true },
   ).then((card) => {
     if (!card) {
@@ -79,9 +82,10 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const deleteLikeFromCard = (req: Request, res: Response, next: NextFunction) => {
+  const { user } = res.locals;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user?._id } },
+    { $pull: { likes: user?._id } },
     { new: true },
   ).then((card) => {
     if (!card) {

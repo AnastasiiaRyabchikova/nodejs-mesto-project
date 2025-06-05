@@ -10,6 +10,7 @@ import DublicateError from '../requests/dublicate-error';
 import InteranlServerError from '../requests/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
 import { CREATED_SUCCES_CODE } from '../requests/codes';
+import { AuthContext } from '../types/entities/user';
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
@@ -78,24 +79,25 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
-  User.findById(req.user?._id)
-    .then((user) => {
-      if (!user) {
+  const { user } = res.locals;
+  User.findById(user._id)
+    .then((me) => {
+      if (!me) {
         next(new NotFoundError('Пользователь не найден'));
       } else {
-        res.send(user);
+        res.send(me);
       }
     });
 };
 
-export const updateMe = (req: Request, res: Response, next: NextFunction) => {
+export const updateMe = (req: Request, res: Response<unknown, AuthContext>, next: NextFunction) => {
   const updatedUser = {
     name: req.body.name,
     about: req.body.about,
     avatar: req.body.avatar,
   };
 
-  User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
+  User.findByIdAndUpdate(res.locals.user?._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));
@@ -113,12 +115,16 @@ export const updateMe = (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-export const updateMyAvatar = (req: Request, res: Response, next: NextFunction) => {
+export const updateMyAvatar = (
+  req: Request,
+  res: Response<unknown, AuthContext>,
+  next: NextFunction,
+) => {
   const updatedUser = {
     avatar: req.body.avatar || '',
   };
 
-  User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
+  User.findByIdAndUpdate(res.locals.user._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
         next(new NotFoundError('Пользователь не найден'));

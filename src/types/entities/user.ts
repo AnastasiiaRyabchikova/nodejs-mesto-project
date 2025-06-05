@@ -5,3 +5,9 @@ export default interface IUser {
   password: string,
   email: string,
 }
+
+export interface AuthContext {
+  user: {
+    _id: string,
+  }
+}
