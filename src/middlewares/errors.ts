@@ -1,10 +1,13 @@
-import { Request, Response } from 'express';
-import { ServerError } from '../errors/ServerError';
+import { ErrorRequestHandler } from 'express';
+import { INTERNAL_SERVER_ERROR_CODE } from '../errors/codes';
 
-export default (err: ServerError, req: Request, res: Response, next: Function) => {
-  const message = err.statusCode === 500 ? 'На сервере произошла ошибка' : err.message;
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const statusCode = err.statusCode || INTERNAL_SERVER_ERROR_CODE;
+  const message = statusCode === INTERNAL_SERVER_ERROR_CODE ? 'На сервере произошла ошибка' : err.message;
   res
-    .status(err.statusCode)
+    .status(statusCode)
     .send({ message });
   next();
 };
+
+export default errorHandler;

@@ -13,6 +13,6 @@ router.get('/', getUsers);
 router.get('/me', getMe);
 router.patch('/me', updateMe);
 router.patch('/me/avatar', updateMyAvatar);
-router.get('/:id', getUserById);
+router.get('/:userId', getUserById);
 
 export default router;

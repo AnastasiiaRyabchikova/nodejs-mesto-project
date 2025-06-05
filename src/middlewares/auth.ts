@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { ServerError } from '../errors/ServerError';
-import { AUTHORIZATION_ERROR_CODE } from '../errors/codes';
+import AuthorizationError from '../errors/authorization-error';
 
 export default (req: Request, res: Response, next: Function) => {
   const { httpOnly } = req.cookies;
@@ -17,6 +16,6 @@ export default (req: Request, res: Response, next: Function) => {
       next();
     }
   } catch (e) {
-    next(new ServerError({ statusCode: AUTHORIZATION_ERROR_CODE, message: 'Ошибка авторизации' }));
+    next(new AuthorizationError('Ошибка авторизации'));
   }
 };

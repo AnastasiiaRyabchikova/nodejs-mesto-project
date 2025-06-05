@@ -3,14 +3,11 @@ import { Error, MongooseError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import { ServerError } from '../errors/ServerError';
-import {
-  AUTHORIZATION_ERROR_CODE,
-  DUBLICATE_ERROR_CODE,
-  NOT_FOUND_ERROR_CODE,
-  REQUEST_ERROR_CODE,
-  UNHANDLED_SERVER_ERROR_CODE,
-} from '../errors/codes';
+import AuthorizationError from '../errors/authorization-error';
+import NotFoundError from '../errors/not-found';
+import RequestError from '../errors/request-error';
+import DublicateError from '../errors/dublicate-error';
+import InteranlServerError from '../errors/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
@@ -18,29 +15,33 @@ export const getUsers = (req: Request, res: Response, next: NextFunction) => {
     .then((users) => {
       res.send(users);
     })
-    .catch((error) => {
-      next(new ServerError(error));
+    .catch(() => {
+      next(new InteranlServerError());
     });
 };
 
 export const getUserById = (req: Request, res: Response, next: NextFunction) => {
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
     })
-    .catch(() => {
-      next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+    .catch((error: MongooseError) => {
+      if (error instanceof Error.CastError) {
+        next(new RequestError('Передан неправильный id'));
+      } else {
+        next(new InteranlServerError());
+      }
     });
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const { password } = req.body;
   if (!password) {
-    next(new ServerError({ statusCode: REQUEST_ERROR_CODE, message: 'Укажите пароль' }));
+    next(new RequestError('Укажите пароль'));
   } else {
     bcrypt.hash(req.body.password, 10)
       .then((hash) => (
@@ -63,12 +64,12 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
       })
       .catch((error: MongooseError) => {
         if (error.constructor?.name === 'MongoServerError' && error.code === 11000) {
-          next(new ServerError({ message: 'Почта уже занята', statusCode: DUBLICATE_ERROR_CODE }));
+          next(new DublicateError('Почта уже занята'));
         } else if (error instanceof Error.ValidationError) {
           const message = getValidationErrorString(error);
-          next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+          next(new DublicateError(message));
         } else {
-          next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+          next(new InteranlServerError());
         }
       });
   }
@@ -78,7 +79,7 @@ export const getMe = (req: Request, res: Response, next: NextFunction) => {
   User.findById(req.user?._id)
     .then((user) => {
       if (!user) {
-        next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
@@ -95,7 +96,7 @@ export const updateMe = (req: Request, res: Response, next: NextFunction) => {
   User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
-        next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
@@ -103,9 +104,9 @@ export const updateMe = (req: Request, res: Response, next: NextFunction) => {
     .catch((error) => {
       if (error instanceof Error.ValidationError) {
         const message = getValidationErrorString(error);
-        next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+        next(new RequestError(message));
       } else {
-        next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+        next(new InteranlServerError());
       }
     });
 };
@@ -118,7 +119,7 @@ export const updateMyAvatar = (req: Request, res: Response, next: NextFunction) 
   User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
-        next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         res.send(user);
       }
@@ -126,9 +127,9 @@ export const updateMyAvatar = (req: Request, res: Response, next: NextFunction) 
     .catch((error) => {
       if (error instanceof Error.ValidationError) {
         const message = getValidationErrorString(error);
-        next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+        next(new RequestError(message));
       } else {
-        next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+        next(new InteranlServerError());
       }
     });
 };
@@ -137,12 +138,12 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
   User.findOne({ email: req.body.email }).select('+password')
     .then((user) => {
       if (!user) {
-        next(new ServerError({ statusCode: AUTHORIZATION_ERROR_CODE, message: 'Неверные почта или пароль' }));
+        next(new AuthorizationError('Неверные почта или пароль'));
       } else {
         bcrypt.compare(req.body.password, user.password)
           .then((isMatch) => {
             if (!isMatch) {
-              next(new ServerError({ statusCode: AUTHORIZATION_ERROR_CODE, message: 'Неверные почта или пароль' }));
+              next(new AuthorizationError('Неверные почта или пароль'));
             } else {
               const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
               res.cookie('httpOnly', token);
@@ -160,9 +161,9 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     .catch((error) => {
       if (error instanceof Error.ValidationError) {
         const message = getValidationErrorString(error);
-        next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+        next(new RequestError(message));
       } else {
-        next(new ServerError({ statusCode: UNHANDLED_SERVER_ERROR_CODE }));
+        next(new InteranlServerError());
       }
     });
 };

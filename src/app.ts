@@ -4,8 +4,7 @@ import cookieParser from 'cookie-parser';
 import errors from './middlewares/errors';
 import UserRouter from './routes/users';
 import CardsRouter from './routes/cards';
-import { ServerError } from './errors/ServerError';
-import { NOT_FOUND_ERROR_CODE } from './errors/codes';
+import NotFoundError from './errors/not-found';
 import { login, createUser } from './controllers/users';
 import auth from './middlewares/auth';
 import logger from './middlewares/logger';
@@ -27,7 +26,7 @@ app.use('/cards', CardsRouter);
 app.use(logger.errorLogger);
 
 app.use((req, res, next) => {
-  next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Страница не найдена' }));
+  next(new NotFoundError('Страница не найдена'));
 });
 
 app.use(errors);

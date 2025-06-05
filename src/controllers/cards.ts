@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { Error, MongooseError } from 'mongoose';
 import Card from '../models/card';
-import { ServerError } from '../errors/ServerError';
-import {
-  NOT_FOUND_ERROR_CODE,
-  REQUEST_ERROR_CODE,
-  FORBIDDEN_ERROR_CODE,
-} from '../errors/codes';
+import NotFoundError from '../errors/not-found';
+import RequestError from '../errors/request-error';
+import ForbidenError from '../errors/forbiden-error';
+import InteranlServerError from '../errors/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
 
 export const getCards = (req: Request, res: Response, next: Function) => {
@@ -14,24 +12,28 @@ export const getCards = (req: Request, res: Response, next: Function) => {
     .then((cards) => {
       res.send(cards);
     })
-    .catch((error) => {
-      next(new ServerError(error));
+    .catch(() => {
+      next(new InteranlServerError());
     });
 };
 
 export const deleteCardById = (req: Request, res: Response, next: NextFunction) => {
-  Card.findById(req.params.id)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Карточка не найдена' }));
+        next(new NotFoundError('Карточка не найдена'));
       } else if (card.owner.toString() !== req.user?._id) {
-        next(new ServerError({ statusCode: FORBIDDEN_ERROR_CODE, message: 'Нельзя удалять чужую карточку' }));
+        next(new ForbidenError('Нельзя удалять чужую карточку'));
       } else {
         card.deleteOne().then(() => res.send({ message: 'Карточка удалена' }));
       }
     })
-    .catch(() => {
-      next(new ServerError());
+    .catch((error: MongooseError) => {
+      if (error instanceof Error.CastError) {
+        next(new RequestError('Передан неправильный id'));
+      } else {
+        next(new InteranlServerError());
+      }
     });
 };
 
@@ -48,9 +50,9 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
     .catch((error: MongooseError) => {
       if (error instanceof Error.ValidationError) {
         const message = getValidationErrorString(error);
-        next(new ServerError({ message, statusCode: REQUEST_ERROR_CODE }));
+        next(new RequestError(message));
       } else {
-        next(new ServerError());
+        next(new InteranlServerError());
       }
     });
 };
@@ -62,12 +64,16 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     { new: true },
   ).then((card) => {
     if (!card) {
-      next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Карточка не найдена' }));
+      next(new NotFoundError('Карточка не найдена'));
     } else {
       res.send(card);
     }
-  }).catch(() => {
-    next(new ServerError());
+  }).catch((error: MongooseError) => {
+    if (error instanceof Error.CastError) {
+      next(new RequestError('Передан неправильный id'));
+    } else {
+      next(new InteranlServerError());
+    }
   });
 };
 
@@ -78,11 +84,15 @@ export const deleteLikeFromCard = (req: Request, res: Response, next: NextFuncti
     { new: true },
   ).then((card) => {
     if (!card) {
-      next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Карточка не найдена' }));
+      next(new NotFoundError('Карточка не найдена'));
     } else {
       res.send(card);
     }
-  }).catch(() => {
-    next(new ServerError());
+  }).catch((error: MongooseError) => {
+    if (error instanceof Error.CastError) {
+      next(new RequestError('Передан неправильный id'));
+    } else {
+      next(new InteranlServerError());
+    }
   });
 };
