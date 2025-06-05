@@ -65,7 +65,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
           });
       })
       .catch((error) => {
-        if (error.constructor?.name === 'MongoServerError' && error.code === 11000) {
+        if (error instanceof Error && error.message.includes('E11000')) {
           next(new DublicateError('Почта уже занята'));
         } else if (error instanceof Error.ValidationError) {
           const message = getValidationErrorString(error);
