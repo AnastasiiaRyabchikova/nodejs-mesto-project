@@ -17,7 +17,7 @@ router.patch('/me', validateUser, updateMe);
 router.patch('/me/avatar', validateAvatar, updateMyAvatar);
 router.get('/:userId', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    userId: validateUid,
+    userId: validateUid(),
   }),
 }), getUserById);
 

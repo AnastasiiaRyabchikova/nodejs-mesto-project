@@ -14,19 +14,19 @@ const router = Router();
 router.get('/', getCards);
 router.delete('/:cardId', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    cardId: validateUid,
+    cardId: validateUid(),
   }),
 }), deleteCardById);
 router.post('/', validateCard, createCard);
 
 router.put('/:cardId/likes', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    cardId: validateUid,
+    cardId: validateUid(),
   }),
 }), likeCard);
 router.delete('/:cardId/likes', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    cardId: validateUid,
+    cardId: validateUid(),
   }),
 }), deleteLikeFromCard);
 
