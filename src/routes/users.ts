@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate, Segments, Joi } from 'celebrate';
 import {
   getUsers,
   getMe,
@@ -6,13 +7,18 @@ import {
   updateMe,
   updateMyAvatar,
 } from '../controllers/users';
+import { validateAvatar, validateUid, validateUser } from '../utils/request-validation';
 
 const router = Router();
 
 router.get('/', getUsers);
 router.get('/me', getMe);
-router.patch('/me', updateMe);
-router.patch('/me/avatar', updateMyAvatar);
-router.get('/:userId', getUserById);
+router.patch('/me', validateUser, updateMe);
+router.patch('/me/avatar', validateAvatar, updateMyAvatar);
+router.get('/:userId', celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    userId: validateUid,
+  }),
+}), getUserById);
 
 export default router;
