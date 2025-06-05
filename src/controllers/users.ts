@@ -62,7 +62,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
         });
       })
       .catch((error: MongooseError) => {
-        if (error.constructor?.name === 'MongoServerError' && (error as any).code === 11000) {
+        if (error.constructor?.name === 'MongoServerError' && error.code === 11000) {
           next(new ServerError({ message: 'Почта уже занята', statusCode: DUBLICATE_ERROR_CODE }));
         } else if (error instanceof Error.ValidationError) {
           const message = getValidationErrorString(error);
@@ -75,7 +75,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
-  User.findById((req as any).user._id)
+  User.findById(req.user?._id)
     .then((user) => {
       if (!user) {
         next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
@@ -92,7 +92,7 @@ export const updateMe = (req: Request, res: Response, next: NextFunction) => {
     avatar: req.body.avatar,
   };
 
-  User.findByIdAndUpdate((req as any).user._id, updatedUser, { new: true })
+  User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
         next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
@@ -115,7 +115,7 @@ export const updateMyAvatar = (req: Request, res: Response, next: NextFunction) 
     avatar: req.body.avatar || '',
   };
 
-  User.findByIdAndUpdate((req as any).user._id, updatedUser, { new: true })
+  User.findByIdAndUpdate(req.user?._id, updatedUser, { new: true })
     .then((user) => {
       if (!user) {
         next(new ServerError({ statusCode: NOT_FOUND_ERROR_CODE, message: 'Пользователь не найден' }));
