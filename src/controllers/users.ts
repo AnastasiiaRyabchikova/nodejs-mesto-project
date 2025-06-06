@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { Error, MongooseError } from 'mongoose';
+import { Error as MongooseError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
@@ -31,8 +31,8 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
         res.send(user);
       }
     })
-    .catch((error: MongooseError) => {
-      if (error instanceof Error.CastError) {
+    .catch((error) => {
+      if (error instanceof MongooseError.CastError) {
         next(new RequestError('Передан неправильный id'));
       } else {
         next(new InteranlServerError());
@@ -41,41 +41,36 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const { password } = req.body;
-  if (!password) {
-    next(new RequestError('Укажите пароль'));
-  } else {
-    bcrypt.hash(req.body.password, 10)
-      .then((hash) => (
-        User.create({
-          name: req.body.name,
-          about: req.body.about,
-          avatar: req.body.avatar,
-          email: req.body.email,
-          password: hash,
-        })
-      ))
-      .then((user) => {
-        res.status(CREATED_SUCCES_CODE)
-          .send({
-            _id: user._id,
-            name: user.name,
-            about: user.about,
-            avatar: user.avatar,
-            email: user.email,
-          });
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => (
+      User.create({
+        name: req.body.name,
+        about: req.body.about,
+        avatar: req.body.avatar,
+        email: req.body.email,
+        password: hash,
       })
-      .catch((error) => {
-        if (error instanceof Error && error.message.includes('E11000')) {
-          next(new DublicateError('Почта уже занята'));
-        } else if (error instanceof Error.ValidationError) {
-          const message = getValidationErrorString(error);
-          next(new DublicateError(message));
-        } else {
-          next(new InteranlServerError());
-        }
-      });
-  }
+    ))
+    .then((user) => {
+      res.status(CREATED_SUCCES_CODE)
+        .send({
+          _id: user._id,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        });
+    })
+    .catch((error) => {
+      if (error instanceof Error && error.message.includes('E11000')) {
+        next(new DublicateError('Почта уже занята'));
+      } else if (error instanceof MongooseError.ValidationError) {
+        const message = getValidationErrorString(error);
+        next(new DublicateError(message));
+      } else {
+        next(new InteranlServerError());
+      }
+    });
 };
 
 export const getMe = (req: Request, res: Response, next: NextFunction) => {
@@ -106,7 +101,7 @@ export const updateMe = (req: Request, res: Response<unknown, AuthContext>, next
       }
     })
     .catch((error) => {
-      if (error instanceof Error.ValidationError) {
+      if (error instanceof MongooseError.ValidationError) {
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
@@ -133,7 +128,7 @@ export const updateMyAvatar = (
       }
     })
     .catch((error) => {
-      if (error instanceof Error.ValidationError) {
+      if (error instanceof MongooseError.ValidationError) {
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
@@ -167,7 +162,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
       }
     })
     .catch((error) => {
-      if (error instanceof Error.ValidationError) {
+      if (error instanceof MongooseError.ValidationError) {
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
