@@ -7,13 +7,13 @@ import {
   updateMe,
   updateMyAvatar,
 } from '../controllers/users';
-import { validateAvatar, validateUid, validateUser } from '../utils/request-validation';
+import { validateAvatar, validateUid, validateUpdateUser } from '../utils/request-validation';
 
 const router = Router();
 
 router.get('/', getUsers);
 router.get('/me', getMe);
-router.patch('/me', validateUser, updateMe);
+router.patch('/me', validateUpdateUser, updateMe);
 router.patch('/me/avatar', validateAvatar, updateMyAvatar);
 router.get('/:userId', celebrate({
   [Segments.PARAMS]: Joi.object().keys({
