@@ -42,8 +42,6 @@ export const validateUpdateUser = celebrate({
 
 export const validateAvatar = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
-    about: Joi.string().min(2).max(200).default('Исследователь'),
     avatar: Joi.string().custom((value, helpers) => {
       if (validateAvatarString(value)) {
         return value;
@@ -52,8 +50,6 @@ export const validateAvatar = celebrate({
       return helpers.error('any.invalid');
     }, 'custom avatar validation')
       .default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
   }),
 });
 
