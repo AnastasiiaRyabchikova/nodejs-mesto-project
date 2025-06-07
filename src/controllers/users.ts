@@ -7,7 +7,6 @@ import AuthorizationError from '../requests/authorization-error';
 import NotFoundError from '../requests/not-found';
 import RequestError from '../requests/request-error';
 import DublicateError from '../requests/dublicate-error';
-import InteranlServerError from '../requests/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
 import { CREATED_SUCCES_CODE } from '../requests/codes';
 import { AuthContext } from '../types/entities/user';
@@ -17,8 +16,8 @@ export const getUsers = (req: Request, res: Response, next: NextFunction) => {
     .then((users) => {
       res.send(users);
     })
-    .catch(() => {
-      next(new InteranlServerError());
+    .catch((error) => {
+      next(error);
     });
 };
 
@@ -35,7 +34,7 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
       if (error instanceof MongooseError.CastError) {
         next(new RequestError('Передан неправильный id'));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -68,7 +67,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
         const message = getValidationErrorString(error);
         next(new DublicateError(message));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -105,7 +104,7 @@ export const updateMe = (req: Request, res: Response<unknown, AuthContext>, next
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -132,7 +131,7 @@ export const updateMyAvatar = (
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -166,7 +165,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };

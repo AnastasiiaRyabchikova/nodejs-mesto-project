@@ -4,7 +4,6 @@ import Card from '../models/card';
 import NotFoundError from '../requests/not-found';
 import RequestError from '../requests/request-error';
 import ForbidenError from '../requests/forbiden-error';
-import InteranlServerError from '../requests/interanl-server-error';
 import { getValidationErrorString } from '../utils/errors';
 import { CREATED_SUCCES_CODE } from '../requests/codes';
 
@@ -13,8 +12,8 @@ export const getCards = (req: Request, res: Response, next: Function) => {
     .then((cards) => {
       res.send(cards);
     })
-    .catch(() => {
-      next(new InteranlServerError());
+    .catch((error) => {
+      next(error);
     });
 };
 
@@ -34,7 +33,7 @@ export const deleteCardById = (req: Request, res: Response, next: NextFunction) 
       if (error instanceof Error.CastError) {
         next(new RequestError('Передан неправильный id'));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -55,7 +54,7 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
         const message = getValidationErrorString(error);
         next(new RequestError(message));
       } else {
-        next(new InteranlServerError());
+        next(error);
       }
     });
 };
@@ -76,7 +75,7 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     if (error instanceof Error.CastError) {
       next(new RequestError('Передан неправильный id'));
     } else {
-      next(new InteranlServerError());
+      next(error);
     }
   });
 };
@@ -97,7 +96,7 @@ export const deleteLikeFromCard = (req: Request, res: Response, next: NextFuncti
     if (error instanceof Error.CastError) {
       next(new RequestError('Передан неправильный id'));
     } else {
-      next(new InteranlServerError());
+      next(error);
     }
   });
 };
