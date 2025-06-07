@@ -10,16 +10,15 @@ export const validateUid = () => Joi.string().hex().length(24).required();
 
 export const validateCreationUser = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
-    about: Joi.string().min(2).max(200).default('Исследователь'),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(200),
     avatar: Joi.string().custom((value, helpers) => {
       if (validateAvatarString(value)) {
         return value;
       }
 
       return helpers.error('any.invalid');
-    }, 'custom avatar validation')
-      .default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    }, 'custom avatar validation'),
     email: Joi.string().email().required(),
     password: Joi.string().required(),
   }),
@@ -42,8 +41,7 @@ export const validateUpdateUser = celebrate({
       }
 
       return helpers.error('any.invalid');
-    }, 'custom avatar validation')
-      .default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    }, 'custom avatar validation'),
   }),
 });
 
@@ -55,8 +53,7 @@ export const validateAvatar = celebrate({
       }
 
       return helpers.error('any.invalid');
-    }, 'custom avatar validation')
-      .default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    }, 'custom avatar validation'),
   }),
 });
 
