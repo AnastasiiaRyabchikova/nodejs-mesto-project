@@ -9,7 +9,7 @@ import NotFoundError from './requests/not-found';
 import { login, createUser } from './controllers/users';
 import auth from './middlewares/auth';
 import logger from './middlewares/logger';
-import { validateCreationUser } from './utils/request-validation';
+import { validateCreationUser, validateLoginUser } from './utils/request-validation';
 
 const app = express();
 const port = 3000;
@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger.requestLogger);
 app.use(cookieParser());
-app.post('/signin', login);
+app.post('/signin', validateLoginUser, login);
 app.post('/signup', validateCreationUser, createUser);
 app.use(auth);
 app.use('/users', UserRouter);

@@ -24,7 +24,7 @@ export const validateCreationUser = celebrate({
   }),
 });
 
-export const validateLiginUser = celebrate({
+export const validateLoginUser = celebrate({
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required(),
     password: Joi.string().required(),
